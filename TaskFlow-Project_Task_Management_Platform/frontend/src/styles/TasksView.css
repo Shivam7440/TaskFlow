@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════════════════════════
+   TasksView.css — Slate & Cobalt Enterprise Redesign
+   ═══════════════════════════════════════════════════════════ */
+
+/* Reuses Dashboard.css variables: --bg-canvas, --bg-card, --text-main, --border-color, --primary-cobalt, etc. */
+
+.tasks-view-page {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+.tasks-view-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* View Switcher Controls */
+.tasks-view-switcher {
+    display: flex;
+    background-color: var(--bg-canvas);
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.tasks-view-switcher-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--text-slate);
+}
+
+.tasks-view-switcher-btn-active {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-switcher-btn-inactive:hover {
+    color: var(--text-main);
+    background-color: rgba(0,0,0,0.02);
+}
+.dark .tasks-view-switcher-btn-inactive:hover {
+    background-color: rgba(255,255,255,0.02);
+}
+
+/* Action Buttons */
+.tasks-view-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.tasks-view-btn-primary {
+    background-color: var(--primary-cobalt);
+    color: #FFFFFF;
+    border: none;
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-btn-primary:hover {
+    background-color: var(--primary-cobalt-hover);
+    transform: translateY(-1px);
+}
+
+.tasks-view-btn-secondary {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-slate);
+}
+
+.tasks-view-btn-secondary:hover {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+}
+
+.tasks-view-btn-active {
+    background-color: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    color: var(--primary-cobalt);
+}
+.dark .tasks-view-btn-active {
+    background-color: rgba(37, 99, 235, 0.15);
+}
+
+/* Filter Panel */
+.tasks-view-filter-panel {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-slate);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.tasks-view-filter-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background-color: var(--bg-canvas);
+    color: var(--text-slate);
+}
+
+.tasks-view-filter-tag-active {
+    background-color: var(--primary-cobalt);
+    color: #FFFFFF;
+    border-color: var(--primary-cobalt);
+}
+
+.tasks-view-filter-tag-inactive:hover {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+/* Dropdown styling */
+.tasks-view-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 220px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+    overflow: hidden;
+    padding: 6px;
+}
+
+.tasks-view-dropdown-item {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-slate);
+}
+.tasks-view-dropdown-item:hover {
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+}
+
+/* Group Headers */
+.tasks-view-group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+.tasks-view-group-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+/* List container and items */
+.tasks-view-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tasks-view-list-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-list-row:hover {
+    border-color: var(--primary-cobalt);
+    transform: translateY(-1px);
+    box-shadow: var(--taskly-shadow-hover);
+}
+
+.tasks-view-list-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.tasks-view-list-subtitle {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-slate);
+    margin-top: 4px;
+}
+
+.tasks-view-list-action {
+    opacity: 0;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-color);
+    color: var(--text-slate);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.tasks-view-list-row:hover .tasks-view-list-action {
+    opacity: 1;
+}
+
+.tasks-view-list-action:hover {
+    color: var(--text-main);
+    background-color: var(--bg-card);
+}
+
+/* Kanban in TasksView */
+.tasks-view-kanban-column {
+    min-width: 300px;
+    flex: 1;
+    border-radius: 12px;
+    padding: 16px;
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-color);
+}
+
+.tasks-view-kanban-card {
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    border-radius: 10px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-kanban-card:hover {
+    border-color: var(--primary-cobalt);
+    transform: translateY(-2px);
+    box-shadow: var(--taskly-shadow-hover);
+}
+
+/* Gallery View Cards */
+.tasks-view-gallery-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: var(--taskly-shadow);
+}
+
+.tasks-view-gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-cobalt);
+}
+
+/* Timeline Custom Styles */
+.timeline-bg-fill {
+    fill: var(--bg-canvas);
+}
+.dark .timeline-bg-fill {
+    fill: var(--bg-card);
+}
+
+.timeline-header-bg {
+    background-color: var(--bg-card);
+}
+.timeline-sidebar-bg {
+    background-color: var(--bg-card);
+}
+.timeline-grid-bg {
+    background-color: var(--bg-canvas);
+}

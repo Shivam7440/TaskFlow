@@ -1,0 +1,18 @@
+/* KanbanBoard.css */
+/* 
+  Legacy custom styles have been replaced by the global Tailwind Corporate Professional design system.
+  Layout, colors, and responsive design are now handled directly in KanbanBoard.js using Tailwind classes.
+*/
+
+/* Smooth transitions for interactive elements */
+.kanban-page {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure the layout doesn't unexpectedly wrap on very small screens */
+@media (max-width: 768px) {
+  .kanban-board-container {
+    padding: 16px;
+  }
+}
