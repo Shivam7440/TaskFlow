@@ -56,7 +56,14 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed';
-      toast.error(message);
+      // Give a friendlier message when the email already exists
+      if (message.toLowerCase().includes('already exists')) {
+        toast.error('An account with this email already exists. Try logging in instead.');
+      } else if (error.code === 'ERR_NETWORK' || !error.response) {
+        toast.error('Cannot reach the server. Please try again in a moment.');
+      } else {
+        toast.error(message);
+      }
       return { success: false, error: message };
     }
   };
@@ -76,7 +83,11 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        toast.error('Cannot reach the server. It may be starting up — please try again in 30 seconds.');
+      } else {
+        toast.error(message);
+      }
       return { success: false, error: message };
     }
   };

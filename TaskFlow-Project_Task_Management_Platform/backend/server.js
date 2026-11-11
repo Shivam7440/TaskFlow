@@ -195,6 +195,22 @@ server.listen(PORT, () => {
   ║                                                       ║
   ╚═══════════════════════════════════════════════════════╝
   `);
+
+  // Self-ping to prevent Render free tier from sleeping.
+  // Pings the health endpoint every 14 minutes (Render sleeps after 15 min of inactivity).
+  if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+    const https = require('https');
+    const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+    setInterval(() => {
+      const url = `${process.env.RENDER_EXTERNAL_URL}/api/health`;
+      https.get(url, (res) => {
+        console.log(`🏓 Self-ping: ${url} → ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.warn(`⚠️  Self-ping failed: ${err.message}`);
+      });
+    }, PING_INTERVAL_MS);
+    console.log(`🏓 Self-ping enabled → pinging ${process.env.RENDER_EXTERNAL_URL}/api/health every 14 min`);
+  }
 });
 
 // Handle unhandled promise rejections
