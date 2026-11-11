@@ -21,9 +21,12 @@ const {
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    console.log(`[register] START — email: ${email}`);
 
     // Check if user already exists
+    console.log(`[register] calling User.findOne...`);
     const existingUser = await User.findOne({ email });
+    console.log(`[register] User.findOne done — found: ${!!existingUser}`);
     if (existingUser) {
       return next(new AppError('User with this email already exists', 400));
     }
