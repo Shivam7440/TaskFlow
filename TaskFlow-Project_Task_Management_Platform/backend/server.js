@@ -152,6 +152,18 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/platform-usage', platformUsageRoutes);
 
+// Quick DB ping diagnostic
+app.get('/api/dbping', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const start = Date.now();
+    await mongoose.connection.db.admin().ping();
+    res.json({ success: true, pingMs: Date.now() - start, db: mongoose.connection.name });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Health check endpoint (includes MongoDB connection state)
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
