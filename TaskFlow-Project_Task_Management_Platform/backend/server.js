@@ -160,7 +160,9 @@ app.get('/api/dbping', async (req, res) => {
     await mongoose.connection.db.admin().ping();
     const User = require('./models/User');
     const userCount = await User.countDocuments().maxTimeMS(5000);
-    res.json({ success: true, pingMs: Date.now() - start, db: mongoose.connection.name, userCount });
+    // Also test findOne like register does
+    const testFind = await User.findOne({ email: 'nonexistent_test@test.com' }).maxTimeMS(5000);
+    res.json({ success: true, pingMs: Date.now() - start, db: mongoose.connection.name, userCount, findOneWorks: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
