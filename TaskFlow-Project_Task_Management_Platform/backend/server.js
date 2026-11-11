@@ -158,7 +158,9 @@ app.get('/api/dbping', async (req, res) => {
     const mongoose = require('mongoose');
     const start = Date.now();
     await mongoose.connection.db.admin().ping();
-    res.json({ success: true, pingMs: Date.now() - start, db: mongoose.connection.name });
+    const User = require('./models/User');
+    const userCount = await User.countDocuments().maxTimeMS(5000);
+    res.json({ success: true, pingMs: Date.now() - start, db: mongoose.connection.name, userCount });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
