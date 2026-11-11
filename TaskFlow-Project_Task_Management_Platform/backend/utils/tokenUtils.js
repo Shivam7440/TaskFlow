@@ -61,7 +61,9 @@ const sendTokenResponse = async (user, statusCode, res, additionalData = {}) => 
     ),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    // Use 'lax' in development (allows cross-port localhost requests),
+    // 'none' in production only when using HTTPS cross-origin.
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   };
 
   // Remove sensitive data

@@ -37,15 +37,17 @@ const server = http.createServer(app);
 
 // Allowed origins for CORS
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  process.env.CLIENT_URL?.replace(/\/$/, ''), // strip trailing slash
   'http://localhost:3000',
   'http://localhost:3001',
   'https://taskflow-projectmanagementplatform.vercel.app',
+  'https://taskflow-frontend-taupe-two.vercel.app',
+  'https://task-flow-zeta-jet.vercel.app',
 ].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (mobile apps, curl, Postman, etc.)
     if (!origin) return callback(null, true);
     if (allowedOrigins.some(allowed => origin === allowed || origin.endsWith('.vercel.app'))) {
       callback(null, true);
@@ -93,9 +95,12 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',   // HTTPS only in prod
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      // 'none' required for cross-origin OAuth on HTTPS (Render ↔ Vercel)
+      // 'lax' works for same-site / local development
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     },
   })
 );

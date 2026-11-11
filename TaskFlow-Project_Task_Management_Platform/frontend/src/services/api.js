@@ -68,11 +68,11 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } else {
-          // No refresh token available, force redirect
+          // No refresh token available, force redirect to login
           sessionStorage.removeItem('accessToken');
           sessionStorage.removeItem('refreshToken');
           sessionStorage.removeItem('user');
-          window.location.href = '/';
+          window.location.href = '/login';
           return Promise.reject(error);
         }
       } catch (refreshError) {
@@ -80,7 +80,7 @@ api.interceptors.response.use(
         sessionStorage.removeItem('accessToken');
         sessionStorage.removeItem('refreshToken');
         sessionStorage.removeItem('user');
-        window.location.href = '/';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

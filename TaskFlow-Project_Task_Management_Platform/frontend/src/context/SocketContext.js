@@ -79,15 +79,10 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
         setConnected(false);
-        
-        // If authentication failed (e.g., token invalid or DB disconnected during verification)
-        if (error.message && error.message.includes('Authentication error')) {
-          newSocket.close();
-          sessionStorage.removeItem('accessToken');
-          sessionStorage.removeItem('refreshToken');
-          sessionStorage.removeItem('user');
-          window.location.href = '/';
-        }
+        // Note: We intentionally do NOT force logout on socket connection errors.
+        // A socket error (network issue, server down) should not log out the user —
+        // the REST API uses separate JWT auth and can still work. The socket will
+        // reconnect automatically via socket.io's built-in reconnection logic.
       });
 
       socketRef.current = newSocket;

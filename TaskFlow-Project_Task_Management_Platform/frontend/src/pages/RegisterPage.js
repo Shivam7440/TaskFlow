@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -19,7 +20,8 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      return alert('Passwords do not match');
+      toast.error('Passwords do not match');
+      return;
     }
     setLoading(true);
     const result = await register({

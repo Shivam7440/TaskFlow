@@ -44,13 +44,13 @@ const handleOAuthCallback = async (req, res) => {
 
   // Redirect to frontend with tokens
   // Use a temporary code or just tokens for simplicity in this dev environment
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
   res.redirect(`${clientUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
 };
 
 // Google OAuth routes — only register if credentials are configured
 const oauthNotConfigured = (provider) => (req, res) => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
   res.redirect(`${clientUrl}/login?error=${provider}_not_configured`);
 };
 
