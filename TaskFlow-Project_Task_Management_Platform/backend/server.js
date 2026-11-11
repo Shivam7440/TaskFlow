@@ -214,15 +214,22 @@ server.listen(PORT, () => {
 });
 
 // Handle unhandled promise rejections
+// Log the error but do NOT exit — crashing the whole server because of a
+// single unhandled rejection (e.g. a MongoDB timeout) brings down all users.
 process.on('unhandledRejection', (err) => {
-  console.error(`Unhandled Promise Rejection: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
+  console.error(`⚠️  Unhandled Promise Rejection: ${err.message}`);
+  console.error(err.stack);
+  // Only exit on truly fatal errors (not network/DB timeouts)
+  if (err.name === 'SyntaxError' || err.name === 'ReferenceError' || err.name === 'TypeError') {
+    console.error('Fatal error — shutting down.');
+    server.close(() => process.exit(1));
+  }
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error(`Uncaught Exception: ${err.message}`);
+  console.error(err.stack);
   process.exit(1);
 });
 

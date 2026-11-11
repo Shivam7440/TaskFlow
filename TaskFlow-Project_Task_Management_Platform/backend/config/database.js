@@ -3,16 +3,33 @@ const dns = require('dns');
 
 /**
  * Database connection configuration
- * Connects to MongoDB using the URI from environment variables.
- * Includes DNS server overrides for resolving SRV records on macOS/local routers,
- * connection retries, and an automatic fallback to local MongoDB if the primary Atlas DB is offline.
+ * Connects to MongoDB Atlas with retry logic.
+ * In production (Render), skip the localhost fallback since it's unavailable.
  */
+
+// Register mongoose connection events only once (at module load) to avoid listener leaks
+mongoose.connection.on('error', (err) => {
+  console.error(`❌ MongoDB connection error: ${err.message}`);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️  MongoDB disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('✅ MongoDB reconnected');
+});
+
 const connectDB = async () => {
   const primaryUri = process.env.MONGODB_URI;
-  const localFallbackUri = 'mongodb://127.0.0.1:27017/task-management';
-  
-  // Set DNS servers to Google and Cloudflare to prevent querySrv ETIMEOUT on macOS/local networks
-  if (primaryUri && primaryUri.startsWith('mongodb+srv://')) {
+
+  if (!primaryUri) {
+    console.error('❌ MONGODB_URI environment variable is not set!');
+    return;
+  }
+
+  // Set DNS servers to Google and Cloudflare to prevent querySrv ETIMEOUT
+  if (primaryUri.startsWith('mongodb+srv://')) {
     try {
       dns.setServers(['8.8.8.8', '1.1.1.1']);
       console.log('🌐 Configured public DNS servers (8.8.8.8, 1.1.1.1) for MongoDB Atlas SRV resolution');
@@ -21,16 +38,7 @@ const connectDB = async () => {
     }
   }
 
-  // Register mongoose connection events once
-  mongoose.connection.on('error', (err) => {
-    console.error(`❌ MongoDB connection error: ${err}`);
-  });
-
-  mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️  MongoDB disconnected');
-  });
-
-  // Graceful shutdown
+  // Graceful shutdown (register once)
   const handleShutdown = async () => {
     try {
       await mongoose.connection.close();
@@ -40,59 +48,59 @@ const connectDB = async () => {
     }
     process.exit(0);
   };
-  process.on('SIGINT', handleShutdown);
-  process.on('SIGTERM', handleShutdown);
+  process.once('SIGINT', handleShutdown);
+  process.once('SIGTERM', handleShutdown);
 
-  const maxRetries = 1;
+  const maxRetries = 2;
   let attempt = 0;
 
-  while (attempt <= maxRetries) {
+  while (attempt < maxRetries) {
     try {
-      console.log(`🔄 Connecting to MongoDB (Attempt ${attempt + 1}/${maxRetries + 1})...`);
+      console.log(`🔄 Connecting to MongoDB Atlas (Attempt ${attempt + 1}/${maxRetries})...`);
       const conn = await mongoose.connect(primaryUri, {
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 10000,
+        serverSelectionTimeoutMS: 15000,  // 15s — longer for Render cold starts
+        connectTimeoutMS: 20000,
+        socketTimeoutMS: 30000,
       });
       console.log(`✅ MongoDB Connected successfully: ${conn.connection.host}`);
-      return; // Connection successful, exit connectDB
+      return; // Connection successful
     } catch (error) {
       attempt++;
       console.error(`❌ Connection attempt ${attempt} failed: ${error.message}`);
-      if (attempt <= maxRetries) {
-        console.log(`⏱️  Retrying in 1 second...`);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (attempt < maxRetries) {
+        console.log(`⏱️  Retrying in 3 seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     }
   }
 
-  // If primary connection completely fails, try fallback to local MongoDB
-  if (primaryUri !== localFallbackUri) {
-    console.warn(`⚠️  Primary MongoDB connection failed. Attempting fallback to local MongoDB...`);
+  // In production on Render, do NOT try localhost — it's not available
+  if (process.env.NODE_ENV !== 'production') {
+    const localFallbackUri = 'mongodb://127.0.0.1:27017/task-management';
+    console.warn('⚠️  Primary MongoDB connection failed. Attempting fallback to local MongoDB...');
     try {
-      const conn = await mongoose.connect(localFallbackUri);
+      const conn = await mongoose.connect(localFallbackUri, {
+        serverSelectionTimeoutMS: 5000,
+      });
       console.log(`✅ MongoDB Fallback Connected (Local): ${conn.connection.host}`);
+      return;
     } catch (fallbackError) {
       console.error(`❌ Local MongoDB fallback also failed: ${fallbackError.message}`);
-      console.error('');
-      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.error('🛑  MONGODB CONNECTION FAILED — Fix one of the following:');
-      console.error('');
-      console.error('  Option A (Atlas): Whitelist your IP in MongoDB Atlas');
-      console.error('    → Go to: https://cloud.mongodb.com');
-      console.error('    → Security → Network Access → Add Current IP Address');
-      console.error('    → Or add 0.0.0.0/0 to allow all IPs (dev only)');
-      console.error('');
-      console.error('  Option B (Local): Install & start MongoDB locally');
-      console.error('    → brew services start mongodb-community');
-      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.error('');
-      // Don't crash the server — keep it running so other fixes can be applied
-      // process.exit(1);
     }
-  } else {
-    // process.exit(1);
-    console.error('❌ Could not connect to MongoDB. Server will continue but DB operations will fail.');
   }
+
+  console.error('');
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.error('🛑  MONGODB CONNECTION FAILED — Fix one of the following:');
+  console.error('');
+  console.error('  Option A (Atlas): Whitelist your IP/Render in MongoDB Atlas');
+  console.error('    → Go to: https://cloud.mongodb.com');
+  console.error('    → Security → Network Access → Add 0.0.0.0/0 (allow all)');
+  console.error('');
+  console.error('  Option B (Local dev): Install & start MongoDB locally');
+  console.error('    → brew services start mongodb-community');
+  console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  // Server stays running — DB operations will return 500 errors but server won't crash
 };
 
 module.exports = connectDB;
