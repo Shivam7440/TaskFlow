@@ -43,21 +43,24 @@ const connectDB = async () => {
   process.on('SIGINT', handleShutdown);
   process.on('SIGTERM', handleShutdown);
 
-  const maxRetries = 2;
+  const maxRetries = 1;
   let attempt = 0;
 
   while (attempt <= maxRetries) {
     try {
       console.log(`🔄 Connecting to MongoDB (Attempt ${attempt + 1}/${maxRetries + 1})...`);
-      const conn = await mongoose.connect(primaryUri);
+      const conn = await mongoose.connect(primaryUri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 10000,
+      });
       console.log(`✅ MongoDB Connected successfully: ${conn.connection.host}`);
       return; // Connection successful, exit connectDB
     } catch (error) {
       attempt++;
       console.error(`❌ Connection attempt ${attempt} failed: ${error.message}`);
       if (attempt <= maxRetries) {
-        console.log(`⏱️  Retrying in 2 seconds...`);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        console.log(`⏱️  Retrying in 1 second...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   }
@@ -70,10 +73,25 @@ const connectDB = async () => {
       console.log(`✅ MongoDB Fallback Connected (Local): ${conn.connection.host}`);
     } catch (fallbackError) {
       console.error(`❌ Local MongoDB fallback also failed: ${fallbackError.message}`);
-      process.exit(1);
+      console.error('');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('🛑  MONGODB CONNECTION FAILED — Fix one of the following:');
+      console.error('');
+      console.error('  Option A (Atlas): Whitelist your IP in MongoDB Atlas');
+      console.error('    → Go to: https://cloud.mongodb.com');
+      console.error('    → Security → Network Access → Add Current IP Address');
+      console.error('    → Or add 0.0.0.0/0 to allow all IPs (dev only)');
+      console.error('');
+      console.error('  Option B (Local): Install & start MongoDB locally');
+      console.error('    → brew services start mongodb-community');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('');
+      // Don't crash the server — keep it running so other fixes can be applied
+      // process.exit(1);
     }
   } else {
-    process.exit(1);
+    // process.exit(1);
+    console.error('❌ Could not connect to MongoDB. Server will continue but DB operations will fail.');
   }
 };
 

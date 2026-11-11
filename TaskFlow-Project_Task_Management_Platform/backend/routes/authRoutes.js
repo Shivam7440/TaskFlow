@@ -48,28 +48,35 @@ const handleOAuthCallback = async (req, res) => {
   res.redirect(`${clientUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
 };
 
-// Google OAuth routes
-router.get(
-  '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Google OAuth routes — only register if credentials are configured
+const oauthNotConfigured = (provider) => (req, res) => {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  res.redirect(`${clientUrl}/login?error=${provider}_not_configured`);
+};
 
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-  handleOAuthCallback
-);
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  router.get(
+    '/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+    handleOAuthCallback
+  );
+} else {
+  router.get('/google', oauthNotConfigured('google'));
+  router.get('/google/callback', oauthNotConfigured('google'));
+}
 
-// GitHub OAuth routes
-router.get(
-  '/github',
-  passport.authenticate('github', { scope: ['user:email'] })
-);
-
-router.get(
-  '/github/callback',
-  passport.authenticate('github', { session: false, failureRedirect: '/login' }),
-  handleOAuthCallback
-);
+// GitHub OAuth routes — only register if credentials are configured
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+  router.get(
+    '/github/callback',
+    passport.authenticate('github', { session: false, failureRedirect: '/login' }),
+    handleOAuthCallback
+  );
+} else {
+  router.get('/github', oauthNotConfigured('github'));
+  router.get('/github/callback', oauthNotConfigured('github'));
+}
 
 module.exports = router;

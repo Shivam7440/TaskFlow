@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -8,6 +9,18 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Show error toast if redirected back from OAuth not-configured
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (error === 'google_not_configured') {
+      toast.error('Google login is not configured yet. Please use email & password.');
+    } else if (error === 'github_not_configured') {
+      toast.error('GitHub login is not configured yet. Please use email & password.');
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,6 +34,11 @@ const LoginPage = () => {
     if (result.success) {
       navigate('/dashboard');
     }
+  };
+
+  const handleGoogleLogin = () => {
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    window.location.href = `${apiUrl}/auth/google`;
   };
 
   return (
@@ -185,7 +203,7 @@ const LoginPage = () => {
             {/* Google OAuth */}
             <button
               type="button"
-              onClick={() => window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/auth/google`}
+              onClick={handleGoogleLogin}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 padding: '12px 16px', border: '1px solid #2A2A2A', borderRadius: 10, background: '#19191A',

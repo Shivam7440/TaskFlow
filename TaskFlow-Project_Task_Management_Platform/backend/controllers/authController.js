@@ -40,18 +40,17 @@ exports.register = async (req, res, next) => {
     const verificationToken = user.generateEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
 
-    // Send verification email
-    await sendVerificationEmail({
+    // Send emails non-blocking so a transporter failure doesn't abort registration
+    sendVerificationEmail({
       email: user.email,
       name: user.name,
       verificationToken,
-    });
+    }).catch((err) => console.error('📧 Verification email failed:', err.message));
 
-    // Send welcome email
-    await sendWelcomeEmail({
+    sendWelcomeEmail({
       email: user.email,
       name: user.name,
-    });
+    }).catch((err) => console.error('📧 Welcome email failed:', err.message));
 
     // Send token response
     sendTokenResponse(user, 201, res, {
@@ -217,12 +216,12 @@ exports.forgotPassword = async (req, res, next) => {
     const resetToken = user.generateResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    // Send reset email
-    await sendPasswordResetEmail({
+    // Send reset email (non-blocking so SMTP errors don't break the endpoint)
+    sendPasswordResetEmail({
       email: user.email,
       name: user.name,
       resetToken,
-    });
+    }).catch((err) => console.error('📧 Reset email failed:', err.message));
 
     res.status(200).json({
       success: true,

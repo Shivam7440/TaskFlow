@@ -176,7 +176,7 @@ echo "REACT_APP_API_URL=http://localhost:5000/api" > .env
 echo "REACT_APP_SOCKET_URL=http://localhost:5000" >> .env
 
 # Start the development server
-npm start
+npm run dev
 ```
 
 The frontend will be available at `http://localhost:3000`

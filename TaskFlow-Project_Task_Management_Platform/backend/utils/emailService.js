@@ -121,7 +121,20 @@ createTransporter();
  * Send an email
  */
 const sendEmail = async (options) => {
-  if (!transporter) await createTransporter();
+  // If no transporter could be created, log and skip gracefully
+  if (!transporter) {
+    try {
+      await createTransporter();
+    } catch (err) {
+      console.warn('📧 [EMAIL SKIPPED] No transporter available:', err.message);
+      return { success: false, error: 'No email transporter configured' };
+    }
+  }
+
+  if (!transporter) {
+    console.warn('📧 [EMAIL SKIPPED] Transporter unavailable — skipping send to', options.to);
+    return { success: false, error: 'No email transporter configured' };
+  }
 
   const message = {
     from: `"${process.env.EMAIL_FROM_NAME || 'TaskFlow Support'}" <${process.env.EMAIL_FROM || 'noreply@taskflow.com'}>`,
