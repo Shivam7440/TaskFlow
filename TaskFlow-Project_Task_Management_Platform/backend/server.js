@@ -152,13 +152,19 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/platform-usage', platformUsageRoutes);
 
-// Health check endpoint
+// Health check endpoint (includes MongoDB connection state)
 app.get('/api/health', (req, res) => {
+  const mongoose = require('mongoose');
+  // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  const dbState = mongoose.connection.readyState;
+  const dbStateMap = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
   res.status(200).json({
     success: true,
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    db: dbStateMap[dbState] || 'unknown',
+    dbState,
   });
 });
 
