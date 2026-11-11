@@ -1,7 +1,7 @@
 const { body, param, query, validationResult } = require('express-validator');
 
 /**
- * Validation middleware using express-validator
+ * Validation middleware using express-validator v7
  * Provides reusable validation rules for different routes
  */
 
@@ -13,7 +13,7 @@ const validate = (req, res, next) => {
       success: false,
       message: 'Validation failed',
       errors: errors.array().map((err) => ({
-        field: err.param,
+        field: err.path || err.param,
         message: err.msg,
       })),
     });
@@ -21,9 +21,22 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Helper: run an array of express-validator chains and then call next
+// In v7, chains must be awaited — this wrapper ensures compatibility
+const runValidation = (chains) => async (req, res, next) => {
+  try {
+    for (const chain of chains) {
+      await chain.run(req);
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 // User validation rules
 const userValidation = {
-  register: [
+  register: runValidation([
     body('name')
       .trim()
       .notEmpty()
@@ -36,23 +49,23 @@ const userValidation = {
       .withMessage('Email is required')
       .isEmail()
       .withMessage('Please provide a valid email')
-      .normalizeEmail(),
+      .toLowerCase(),
     body('password')
       .notEmpty()
       .withMessage('Password is required')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters'),
-  ],
-  login: [
+  ]),
+  login: runValidation([
     body('email')
       .trim()
       .notEmpty()
       .withMessage('Email is required')
       .isEmail()
       .withMessage('Please provide a valid email')
-      .normalizeEmail(),
+      .toLowerCase(),
     body('password').notEmpty().withMessage('Password is required'),
-  ],
+  ]),
   updateProfile: [
     body('name')
       .optional()
